@@ -177,7 +177,7 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                This will be used as your location when planning meetups with friends in groups (can be changed later).
+                This will be used as your location when planning meetups with friendship groups.
               </p>
             </div>
 
