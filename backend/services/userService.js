@@ -11,11 +11,13 @@ const createUser = async (userData) => {
         email: userData.email,
         name: userData.name,
         password: hashedPassword,
+        location: userData.location,
       },
       select: {
         id: true,
         email: true,
         name: true,
+        location: true,
         createdAt: true,
         updatedAt: true,
         // Don't return password in response
@@ -36,6 +38,7 @@ const getUserById = async (id) => {
         id: true,
         email: true,
         name: true,
+        location: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -55,6 +58,7 @@ const getUserByEmail = async (email) => {
         id: true,
         email: true,
         name: true,
+        location: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -74,6 +78,7 @@ const getAllUsers = async () => {
         id: true,
         email: true,
         name: true,
+        location: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -90,6 +95,14 @@ const updateUser = async (id, userData) => {
     const user = await prisma.user.update({
       where: { id },
       data: userData,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        location: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     return user;
   } catch (error) {
