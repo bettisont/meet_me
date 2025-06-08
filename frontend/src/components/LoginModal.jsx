@@ -12,6 +12,7 @@ import { Input } from './ui/input';
 import { Alert, AlertDescription } from './ui/alert';
 import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
+import api from '../services/api';
 
 const LoginModal = ({ open, onOpenChange, onSwitchToSignUp }) => {
   const { login } = useUser();
@@ -38,24 +39,11 @@ const LoginModal = ({ open, onOpenChange, onSwitchToSignUp }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5001/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to login');
-      }
-
-      const result = await response.json();
-      console.log('Login successful:', result);
+      const response = await api.post('/auth/login', formData);
+      console.log('Login successful:', response.data);
       
       // Save user and token to context
-      login(result.user, result.token);
+      login(response.data.user, response.data.token);
       setSuccess(true);
       
       // Reset form
@@ -68,7 +56,7 @@ const LoginModal = ({ open, onOpenChange, onSwitchToSignUp }) => {
       }, 1500);
       
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message || 'Failed to login');
     } finally {
       setLoading(false);
     }

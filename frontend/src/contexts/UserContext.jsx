@@ -16,14 +16,14 @@ export const UserProvider = ({ children }) => {
 
   // Initialize user from localStorage on mount
   useEffect(() => {
-    const savedUser = localStorage.getItem('meetme_user');
+    const savedUser = localStorage.getItem('user');
     const savedToken = localStorage.getItem('authToken');
     if (savedUser && savedToken) {
       try {
         setUser(JSON.parse(savedUser));
       } catch (error) {
         console.error('Error parsing saved user:', error);
-        localStorage.removeItem('meetme_user');
+        localStorage.removeItem('user');
         localStorage.removeItem('authToken');
       }
     }
@@ -32,7 +32,7 @@ export const UserProvider = ({ children }) => {
 
   const login = (userData, token) => {
     setUser(userData);
-    localStorage.setItem('meetme_user', JSON.stringify(userData));
+    localStorage.setItem('user', JSON.stringify(userData));
     if (token) {
       localStorage.setItem('authToken', token);
     }
@@ -40,13 +40,13 @@ export const UserProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('meetme_user');
+    localStorage.removeItem('user');
     localStorage.removeItem('authToken');
   };
 
   const updateUser = (updatedData) => {
     setUser(updatedData);
-    localStorage.setItem('meetme_user', JSON.stringify(updatedData));
+    localStorage.setItem('user', JSON.stringify(updatedData));
   };
 
   const value = {

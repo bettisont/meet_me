@@ -12,6 +12,7 @@ import { Input } from './ui/input';
 import { Alert, AlertDescription } from './ui/alert';
 import { Loader2, Mail, User, Lock, Eye, EyeOff } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
+import api from '../services/api';
 
 const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
   const { login } = useUser();
@@ -54,28 +55,15 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:5001/api/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password
-        }),
+      const response = await api.post('/users', {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create account');
-      }
-
-      const user = await response.json();
-      console.log('User created:', user);
+      console.log('User created:', response.data);
       
       // Auto-login the user after successful signup
-      login(user);
+      login(response.data.user, response.data.token);
       setSuccess(true);
       
       // Reset form
@@ -88,7 +76,7 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
       }, 1500);
       
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message || 'Failed to create account');
     } finally {
       setLoading(false);
     }

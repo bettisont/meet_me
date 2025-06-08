@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 const { 
   createUser, 
   getUserById, 
@@ -99,7 +100,26 @@ router.post('/', async (req, res) => {
     }
     
     const user = await createUser({ email, name, password });
-    res.status(201).json(user);
+    
+    // Generate JWT token for the new user
+    const token = jwt.sign(
+      { 
+        userId: user.id, 
+        email: user.email 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    
+    res.status(201).json({ 
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        location: user.location
+      },
+      token 
+    });
   } catch (error) {
     console.error('Error in POST /users:', error);
     res.status(500).json({
