@@ -85,8 +85,7 @@ const ProfilePage = ({ onBack }) => {
               Coming Soon
             </h3>
             <div className="space-y-2 text-xs text-muted-foreground">
-              <p>• Saved favorite locations</p>
-              <p>• Recent venue searches</p>
+              <p>• Group meetups</p>
               <p>• Friend connections</p>
               <p>• Meetup history</p>
             </div>
