@@ -1,11 +1,24 @@
 const prisma = require('../lib/prisma');
+const bcrypt = require('bcryptjs');
 
 const createUser = async (userData) => {
   try {
+    // Hash the password before storing
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    
     const user = await prisma.user.create({
       data: {
         email: userData.email,
         name: userData.name,
+        password: hashedPassword,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+        // Don't return password in response
       },
     });
     return user;
@@ -19,6 +32,13 @@ const getUserById = async (id) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     return user;
   } catch (error) {
@@ -31,6 +51,13 @@ const getUserByEmail = async (email) => {
   try {
     const user = await prisma.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     return user;
   } catch (error) {
@@ -43,6 +70,13 @@ const getAllUsers = async () => {
   try {
     const users = await prisma.user.findMany({
       orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     return users;
   } catch (error) {

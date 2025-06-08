@@ -10,16 +10,20 @@ import {
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Alert, AlertDescription } from './ui/alert';
-import { Loader2, Mail, User } from 'lucide-react';
+import { Loader2, Mail, User, Lock, Eye, EyeOff } from 'lucide-react';
 
 const SignUpModal = ({ open, onOpenChange }) => {
   const [formData, setFormData] = useState({
     name: '',
-    email: ''
+    email: '',
+    password: '',
+    confirmPassword: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -34,13 +38,30 @@ const SignUpModal = ({ open, onOpenChange }) => {
     setError(null);
     setLoading(true);
 
+    // Validate passwords
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch('http://localhost:5001/api/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password
+        }),
       });
 
       if (!response.ok) {
@@ -53,7 +74,7 @@ const SignUpModal = ({ open, onOpenChange }) => {
       setSuccess(true);
       
       // Reset form
-      setFormData({ name: '', email: '' });
+      setFormData({ name: '', email: '', password: '', confirmPassword: '' });
       
       // Close modal after a brief delay
       setTimeout(() => {
@@ -73,9 +94,11 @@ const SignUpModal = ({ open, onOpenChange }) => {
       onOpenChange(newOpen);
       if (!newOpen) {
         // Reset form when closing
-        setFormData({ name: '', email: '' });
+        setFormData({ name: '', email: '', password: '', confirmPassword: '' });
         setError(null);
         setSuccess(false);
+        setShowPassword(false);
+        setShowConfirmPassword(false);
       }
     }
   };
@@ -137,6 +160,74 @@ const SignUpModal = ({ open, onOpenChange }) => {
                   required
                   disabled={loading}
                 />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className="pl-10 pr-10"
+                  required
+                  disabled={loading}
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                  disabled={loading}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Must be at least 6 characters long
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="confirmPassword" className="text-sm font-medium">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  className="pl-10 pr-10"
+                  required
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                  disabled={loading}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
               </div>
             </div>
 

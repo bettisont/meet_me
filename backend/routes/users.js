@@ -70,11 +70,23 @@ router.get('/email/:email', async (req, res) => {
 // POST /api/users - Create new user
 router.post('/', async (req, res) => {
   try {
-    const { email, name } = req.body;
+    const { email, name, password } = req.body;
     
     if (!email) {
       return res.status(400).json({
         error: 'Email is required'
+      });
+    }
+    
+    if (!password) {
+      return res.status(400).json({
+        error: 'Password is required'
+      });
+    }
+    
+    if (password.length < 6) {
+      return res.status(400).json({
+        error: 'Password must be at least 6 characters long'
       });
     }
     
@@ -86,7 +98,7 @@ router.post('/', async (req, res) => {
       });
     }
     
-    const user = await createUser({ email, name });
+    const user = await createUser({ email, name, password });
     res.status(201).json(user);
   } catch (error) {
     console.error('Error in POST /users:', error);
