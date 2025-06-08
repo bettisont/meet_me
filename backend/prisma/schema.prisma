@@ -18,8 +18,76 @@ model User {
   email     String   @unique
   name      String?
   password  String
+  location  String?  // Saved user location
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Friend relationships
+  sentFriendRequests     Friendship[] @relation("FriendRequestsSent")
+  receivedFriendRequests Friendship[] @relation("FriendRequestsReceived")
+  
+  // Groups
+  groupMemberships GroupMember[]
+  createdGroups    Group[]
+
   @@map("users")
+}
+
+model Friendship {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     String   @default("pending") // pending, accepted, rejected
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  sender   User @relation("FriendRequestsSent", fields: [senderId], references: [id])
+  receiver User @relation("FriendRequestsReceived", fields: [receiverId], references: [id])
+
+  @@unique([senderId, receiverId])
+  @@map("friendships")
+}
+
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  creatorId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creator User          @relation(fields: [creatorId], references: [id])
+  members GroupMember[]
+  meetups Meetup[]
+
+  @@map("groups")
+}
+
+model GroupMember {
+  id        String   @id @default(cuid())
+  groupId   String
+  userId    String
+  role      String   @default("member") // admin, member
+  joinedAt  DateTime @default(now())
+
+  group Group @relation(fields: [groupId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([groupId, userId])
+  @@map("group_members")
+}
+
+model Meetup {
+  id          String   @id @default(cuid())
+  groupId     String
+  name        String
+  description String?
+  date        DateTime
+  location    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  group Group @relation(fields: [groupId], references: [id])
+
+  @@map("meetups")
 }

@@ -1,27 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { venueService } from '../../services/api';
+import api from '../../services/api';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Select } from '../ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Alert, AlertDescription } from '../ui/alert';
-import { MapPin, X, Plus, Loader2, Star, Navigation, Users, Lock } from 'lucide-react';
+import { MapPin, X, Plus, Loader2, Star, Navigation, Users, Lock, ExternalLink, Share2 } from 'lucide-react';
 import SignUpModal from '../SignUpModal';
 import LoginModal from '../LoginModal';
-import ProfileDropdown from '../ProfileDropdown';
-import ProfilePage from '../ProfilePage';
 import { useUser } from '../../contexts/UserContext';
 
 const VenueFinder = () => {
-  const { isLoggedIn } = useUser();
+  const { isLoggedIn, user } = useUser();
   const [postcodes, setPostcodes] = useState(['', '']);
+  const [postcodeLabels, setPostcodeLabels] = useState([]);
   const [venueType, setVenueType] = useState('pub');
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
+  const [groups, setGroups] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState('');
+  const [activeTab, setActiveTab] = useState('manual');
+  const [shareSuccess, setShareSuccess] = useState(null);
 
   const venueTypes = [
     { value: 'pub', label: 'Pub' },
@@ -34,20 +37,133 @@ const VenueFinder = () => {
     { value: 'shopping', label: 'Shopping' }
   ];
 
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      fetchGroups();
+    }
+  }, [isLoggedIn, user]);
+
+  const fetchGroups = async () => {
+    try {
+      const response = await api.get('/groups/my-groups');
+      setGroups(response.data);
+    } catch (error) {
+      console.error('Error fetching groups:', error);
+    }
+  };
+
+  const switchTab = (tab) => {
+    setActiveTab(tab);
+    // Reset form state when switching tabs
+    if (tab === 'manual') {
+      setSelectedGroup('');
+      setPostcodes(['', '']);
+      setPostcodeLabels([]);
+    } else if (tab === 'group') {
+      setPostcodes(['', '']);
+      setPostcodeLabels([]);
+    }
+    setError(null);
+  };
+
+  const handleVisitWebsite = (website) => {
+    if (website) {
+      // Ensure website has protocol
+      const url = website.startsWith('http') ? website : `https://${website}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleViewOnMaps = (venue) => {
+    const query = encodeURIComponent(`${venue.name}, ${venue.address}`);
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
+    window.open(mapsUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleShareVenue = async (venue) => {
+    const shareText = `Here's a venue I found with MeetMe:
+
+${venue.name}
+${venue.address}${venue.website ? `\n${venue.website}` : ''}`;
+    
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setShareSuccess(venue.id);
+      setTimeout(() => setShareSuccess(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+      // Fallback: try to use the older API
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = shareText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        setShareSuccess(venue.id);
+        setTimeout(() => setShareSuccess(null), 2000);
+      } catch {
+        setError('Failed to copy venue details to clipboard');
+      }
+    }
+  };
+
   const handlePostcodeChange = (index, value) => {
     const newPostcodes = [...postcodes];
     newPostcodes[index] = value;
     setPostcodes(newPostcodes);
   };
 
+  const handleGroupChange = async (groupId) => {
+    setSelectedGroup(groupId);
+    
+    if (!groupId) {
+      setPostcodes(['', '']);
+      setPostcodeLabels([]);
+      return;
+    }
+
+    try {
+      const response = await api.get(`/groups/${groupId}`);
+      const group = response.data;
+      
+      // Extract postcodes and names from group members
+      const memberData = group.members
+        .filter(member => member.user.location) // Only include members with locations
+        .map(member => ({
+          postcode: member.user.location,
+          name: member.user.name || member.user.email.split('@')[0]
+        }));
+      
+      // Set postcodes and labels
+      const newPostcodes = memberData.map(member => member.postcode);
+      const newLabels = memberData.map(member => member.name);
+      
+      // Ensure at least 2 empty slots if less than 2 members have locations
+      while (newPostcodes.length < 2) {
+        newPostcodes.push('');
+        newLabels.push('');
+      }
+      
+      setPostcodes(newPostcodes);
+      setPostcodeLabels(newLabels);
+    } catch (error) {
+      console.error('Error fetching group details:', error);
+      setError('Failed to load group member locations');
+    }
+  };
+
   const addPostcode = () => {
     setPostcodes([...postcodes, '']);
+    setPostcodeLabels([...postcodeLabels, '']);
   };
 
   const removePostcode = (index) => {
     if (postcodes.length > 2) {
       const newPostcodes = postcodes.filter((_, i) => i !== index);
+      const newLabels = postcodeLabels.filter((_, i) => i !== index);
       setPostcodes(newPostcodes);
+      setPostcodeLabels(newLabels);
     }
   };
 
@@ -76,69 +192,158 @@ const VenueFinder = () => {
     }
   };
 
-  // Show profile page if requested
-  if (showProfile) {
-    return <ProfilePage onBack={() => setShowProfile(false)} />;
-  }
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
-      <div className="text-center space-y-2 relative">
-        {/* Profile dropdown in top right when logged in */}
-        {isLoggedIn && (
-          <div className="absolute top-0 right-0">
-            <ProfileDropdown onProfileClick={() => setShowProfile(true)} />
-          </div>
-        )}
-        
-        <h1 className="text-4xl font-bold tracking-tight">MeetMe</h1>
+      <div className="text-center space-y-2">
+        <h1 className="text-4xl font-bold tracking-tight">Find a Venue</h1>
         <p className="text-muted-foreground text-lg">Find the sweet spot between you and them.</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Search for Venues</CardTitle>
-          <CardDescription>Enter at least two postcodes to find venues at the midpoint</CardDescription>
+          <CardDescription>Find venues at the midpoint between locations</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
-              <label className="text-sm font-medium">Enter Postcodes</label>
-              {postcodes.map((postcode, index) => (
-                <div key={index} className="flex gap-2">
-                  <div className="relative flex-1">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="text"
-                      value={postcode}
-                      onChange={(e) => handlePostcodeChange(index, e.target.value)}
-                      placeholder={`Postcode ${index + 1}`}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                  {postcodes.length > 2 && (
+              {/* Tab Navigation */}
+              <div className="flex border-b border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => switchTab('manual')}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    activeTab === 'manual'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+                  }`}
+                >
+                  Manual Entry
+                </button>
+                {isLoggedIn && groups.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => switchTab('group')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                      activeTab === 'group'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+                    }`}
+                  >
+                    <Users className="h-4 w-4 mr-1 inline" />
+                    Friendship Group
+                  </button>
+                )}
+              </div>
+
+              {/* Tab Content */}
+              <div className="mt-4">
+                {activeTab === 'manual' ? (
+                  <div className="space-y-4">
+                    <label className="text-sm font-medium">Enter Postcodes</label>
+                    {postcodes.map((postcode, index) => (
+                      <div key={index} className="flex gap-2">
+                        <div className="relative flex-1">
+                          <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="text"
+                            value={postcode}
+                            onChange={(e) => handlePostcodeChange(index, e.target.value)}
+                            placeholder={`Postcode ${index + 1}`}
+                            className="pl-10"
+                            required
+                          />
+                        </div>
+                        {postcodes.length > 2 && (
+                          <Button
+                            type="button"
+                            onClick={() => removePostcode(index)}
+                            variant="outline"
+                            size="icon"
+                            className="shrink-0"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
                     <Button
                       type="button"
-                      onClick={() => removePostcode(index)}
+                      onClick={addPostcode}
                       variant="outline"
-                      size="icon"
-                      className="shrink-0"
+                      className="w-full"
                     >
-                      <X className="h-4 w-4" />
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add another postcode
                     </Button>
-                  )}
-                </div>
-              ))}
-              <Button
-                type="button"
-                onClick={addPostcode}
-                variant="outline"
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add another postcode
-              </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <label className="text-sm font-medium">Choose Friendship Group</label>
+                    <Select
+                      value={selectedGroup}
+                      onChange={(e) => handleGroupChange(e.target.value)}
+                      className="w-full"
+                    >
+                      <option value="" disabled>
+                        Select a friendship group
+                      </option>
+                      {groups.map(group => (
+                        <option key={group.id} value={group.id}>
+                          {group.name} ({group._count?.members || 0} members)
+                        </option>
+                      ))}
+                    </Select>
+                    
+                    {selectedGroup && (
+                      <div className="space-y-4 mt-4">
+                        <label className="text-sm font-medium">Member Locations (editable)</label>
+                        {postcodes.map((postcode, index) => (
+                          <div key={index} className="flex gap-2">
+                            <div className="relative flex-1">
+                              <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                type="text"
+                                value={postcode}
+                                onChange={(e) => handlePostcodeChange(index, e.target.value)}
+                                placeholder={postcodeLabels[index] ? `${postcodeLabels[index]}'s postcode` : `Postcode ${index + 1}`}
+                                className="pl-10"
+                                required
+                              />
+                              {postcodeLabels[index] && (
+                                <span className="absolute right-3 top-3 text-xs text-muted-foreground">
+                                  ({postcodeLabels[index]})
+                                </span>
+                              )}
+                            </div>
+                            {postcodes.length > 2 && (
+                              <Button
+                                type="button"
+                                onClick={() => removePostcode(index)}
+                                variant="outline"
+                                size="icon"
+                                className="shrink-0"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                        <Button
+                          type="button"
+                          onClick={addPostcode}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add another postcode
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -232,22 +437,102 @@ const VenueFinder = () => {
             <div className="grid gap-4">
               {results.venues.map(venue => (
                 <Card key={venue.id} className="transition-all hover:shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-2">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-2">
                       <h4 className="text-lg font-semibold">{venue.name}</h4>
-                      <span className="text-sm bg-secondary px-3 py-1 rounded-full">
+                      <span className="text-sm bg-secondary px-3 py-1 rounded-full self-start sm:self-auto">
                         {venue.distance} miles
                       </span>
                     </div>
-                    <p className="text-muted-foreground mb-3">{venue.address}</p>
-                    <div className="flex items-center gap-4 text-sm">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium">{venue.rating}</span>
+                    <p className="text-muted-foreground mb-3 text-sm sm:text-base">{venue.address}</p>
+                    
+                    {/* Mobile Layout */}
+                    <div className="sm:hidden space-y-3">
+                      <div className="flex items-center gap-3 text-sm">
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="font-medium">{venue.rating}</span>
+                        </div>
+                        {venue.phone && (
+                          <span className="text-muted-foreground truncate">{venue.phone}</span>
+                        )}
                       </div>
-                      {venue.phone && (
-                        <span className="text-muted-foreground">{venue.phone}</span>
-                      )}
+                      <div className="grid grid-cols-2 gap-2">
+                        {venue.website && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVisitWebsite(venue.website)}
+                            className="text-xs w-full"
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            Website
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewOnMaps(venue)}
+                          className="text-xs w-full"
+                        >
+                          <MapPin className="h-3 w-3 mr-1" />
+                          Maps
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleShareVenue(venue)}
+                          className={`text-xs w-full ${!venue.website ? 'col-span-2' : ''}`}
+                        >
+                          <Share2 className="h-3 w-3 mr-1" />
+                          {shareSuccess === venue.id ? 'Copied!' : 'Share'}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Desktop Layout */}
+                    <div className="hidden sm:flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="font-medium">{venue.rating}</span>
+                        </div>
+                        {venue.phone && (
+                          <span className="text-muted-foreground">{venue.phone}</span>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {venue.website && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleVisitWebsite(venue.website)}
+                            className="text-xs"
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            Website
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewOnMaps(venue)}
+                          className="text-xs"
+                        >
+                          <MapPin className="h-3 w-3 mr-1" />
+                          Maps
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleShareVenue(venue)}
+                          className="text-xs"
+                        >
+                          <Share2 className="h-3 w-3 mr-1" />
+                          {shareSuccess === venue.id ? 'Copied!' : 'Share'}
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

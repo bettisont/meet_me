@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 const { authenticateUser } = require('../services/userService');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 // POST /api/auth/login - Login user
 router.post('/login', async (req, res) => {
@@ -21,9 +24,17 @@ router.post('/login', async (req, res) => {
     
     const user = await authenticateUser(email, password);
     
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    
     res.json({
       message: 'Login successful',
-      user: user
+      user: user,
+      token: token
     });
   } catch (error) {
     console.error('Error in POST /auth/login:', error);

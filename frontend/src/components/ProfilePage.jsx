@@ -1,10 +1,19 @@
-import { ArrowLeft, User, Mail, Calendar } from 'lucide-react';
+import { User, Mail, Calendar, MapPin } from 'lucide-react';
+import { useState } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Alert } from './ui/alert';
+import api from '../services/api';
 
-const ProfilePage = ({ onBack }) => {
-  const { user } = useUser();
+const ProfilePage = () => {
+  const { user, updateUser } = useUser();
+  const [location, setLocation] = useState(user?.location || '');
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -14,20 +23,37 @@ const ProfilePage = ({ onBack }) => {
     });
   };
 
+  const handleSaveLocation = async () => {
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    try {
+      const response = await api.put(`/users/${user.id}`, { location });
+      updateUser({ ...user, location });
+      setSuccess('Location saved successfully!');
+      setIsEditing(false);
+    } catch (error) {
+      setError(error.response?.data?.error || 'Failed to save location');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
-      {/* Header with back button */}
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onBack}
-          className="h-8 w-8"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="text-2xl font-bold">Profile</h1>
-      </div>
+      <h1 className="text-2xl font-bold">Profile</h1>
+
+      {error && (
+        <Alert variant="destructive">
+          {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert>
+          {success}
+        </Alert>
+      )}
 
       {/* Profile Card */}
       <Card>
@@ -77,20 +103,56 @@ const ProfilePage = ({ onBack }) => {
                 </p>
               </div>
             </div>
-          </div>
-          
-          {/* Future features placeholder */}
-          <div className="pt-4 border-t">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">
-              Coming Soon
-            </h3>
-            <div className="space-y-2 text-xs text-muted-foreground">
-              <p>• Saved favorite locations</p>
-              <p>• Recent venue searches</p>
-              <p>• Friend connections</p>
-              <p>• Meetup history</p>
+            
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+              <MapPin className="h-5 w-5 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Saved Location</p>
+                {isEditing ? (
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      type="text"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="Enter your location"
+                      className="text-sm"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={handleSaveLocation}
+                      disabled={loading}
+                    >
+                      {loading ? 'Saving...' : 'Save'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setLocation(user?.location || '');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">
+                      {user?.location || 'Not set'}
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setIsEditing(true)}
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+          
         </CardContent>
       </Card>
     </div>
