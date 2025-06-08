@@ -107,14 +107,17 @@ const ProfilePage = () => {
             <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
               <MapPin className="h-5 w-5 text-muted-foreground" />
               <div className="flex-1">
-                <p className="text-sm font-medium">Saved Location</p>
+                <div className="mb-1">
+                  <p className="text-sm font-medium">Default Location</p>
+                  <p className="text-xs text-muted-foreground">Used when planning meetups in friendship groups</p>
+                </div>
                 {isEditing ? (
                   <div className="flex gap-2 mt-1">
                     <Input
                       type="text"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
-                      placeholder="Enter your location"
+                      placeholder="Enter your default postcode (e.g. SW1A 1AA)"
                       className="text-sm"
                     />
                     <Button

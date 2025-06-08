@@ -166,7 +166,7 @@ const GroupsPage = () => {
       .map(m => m.user.location);
     
     if (memberLocations.length === 0) {
-      setError('No members have saved locations. Members need to set their locations first.');
+      setError('No members have default locations. Members need to set their default location first.');
       return;
     }
 

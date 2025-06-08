@@ -71,7 +71,7 @@ router.get('/email/:email', async (req, res) => {
 // POST /api/users - Create new user
 router.post('/', async (req, res) => {
   try {
-    const { email, name, password } = req.body;
+    const { email, name, password, location } = req.body;
     
     if (!email) {
       return res.status(400).json({
@@ -90,6 +90,12 @@ router.post('/', async (req, res) => {
         error: 'Password must be at least 6 characters long'
       });
     }
+
+    if (!location) {
+      return res.status(400).json({
+        error: 'Default location is required'
+      });
+    }
     
     // Check if user already exists
     const existingUser = await getUserByEmail(email);
@@ -99,7 +105,7 @@ router.post('/', async (req, res) => {
       });
     }
     
-    const user = await createUser({ email, name, password });
+    const user = await createUser({ email, name, password, location });
     
     // Generate JWT token for the new user
     const token = jwt.sign(

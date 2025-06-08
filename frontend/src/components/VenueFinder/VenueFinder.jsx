@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { venueService } from '../../services/api';
 import api from '../../services/api';
 import { Button } from '../ui/button';
@@ -60,8 +61,11 @@ const VenueFinder = () => {
       setPostcodes(['', '']);
       setPostcodeLabels([]);
     } else if (tab === 'group') {
-      setPostcodes(['', '']);
-      setPostcodeLabels([]);
+      // Only reset if we have groups, otherwise keep empty state
+      if (groups.length > 0) {
+        setPostcodes(['', '']);
+        setPostcodeLabels([]);
+      }
     }
     setError(null);
   };
@@ -221,7 +225,7 @@ ${venue.address}${venue.website ? `\n${venue.website}` : ''}`;
                 >
                   Manual Entry
                 </button>
-                {isLoggedIn && groups.length > 0 && (
+                {isLoggedIn && (
                   <button
                     type="button"
                     onClick={() => switchTab('group')}
@@ -281,21 +285,43 @@ ${venue.address}${venue.website ? `\n${venue.website}` : ''}`;
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <label className="text-sm font-medium">Choose Friendship Group</label>
-                    <Select
-                      value={selectedGroup}
-                      onChange={(e) => handleGroupChange(e.target.value)}
-                      className="w-full"
-                    >
-                      <option value="" disabled>
-                        Select a friendship group
-                      </option>
-                      {groups.map(group => (
-                        <option key={group.id} value={group.id}>
-                          {group.name} ({group._count?.members || 0} members)
-                        </option>
-                      ))}
-                    </Select>
+                    {groups.length === 0 ? (
+                      <div className="text-center py-8 px-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <Users className="h-12 w-12 text-blue-400 mx-auto mb-3" />
+                        <h3 className="text-lg font-medium text-blue-900 mb-2">No Groups Yet</h3>
+                        <p className="text-blue-700 mb-4 text-sm">
+                          Create a friendship group to quickly plan meetups with your friends.
+                        </p>
+                        <Link to="/groups">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="bg-white border-blue-300 text-blue-700 hover:bg-blue-50"
+                          >
+                            <Users className="h-4 w-4 mr-2" />
+                            Create Your First Group
+                          </Button>
+                        </Link>
+                      </div>
+                    ) : (
+                      <>
+                        <label className="text-sm font-medium">Choose Friendship Group</label>
+                        <Select
+                          value={selectedGroup}
+                          onChange={(e) => handleGroupChange(e.target.value)}
+                          className="w-full"
+                        >
+                          <option value="" disabled>
+                            Select a friendship group
+                          </option>
+                          {groups.map(group => (
+                            <option key={group.id} value={group.id}>
+                              {group.name} ({group._count?.members || 0} members)
+                            </option>
+                          ))}
+                        </Select>
+                      </>
+                    )}
                     
                     {selectedGroup && (
                       <div className="space-y-4 mt-4">

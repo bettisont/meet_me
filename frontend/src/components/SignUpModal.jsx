@@ -10,7 +10,7 @@ import {
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Alert, AlertDescription } from './ui/alert';
-import { Loader2, Mail, User, Lock, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Mail, User, Lock, Eye, EyeOff, MapPin } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import api from '../services/api';
 
@@ -20,7 +20,8 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    location: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -58,7 +59,8 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
       const response = await api.post('/users', {
         name: formData.name,
         email: formData.email,
-        password: formData.password
+        password: formData.password,
+        location: formData.location
       });
       console.log('User created:', response.data);
       
@@ -67,7 +69,7 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
       setSuccess(true);
       
       // Reset form
-      setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+      setFormData({ name: '', email: '', password: '', confirmPassword: '', location: '' });
       
       // Close modal after a brief delay
       setTimeout(() => {
@@ -87,7 +89,7 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
       onOpenChange(newOpen);
       if (!newOpen) {
         // Reset form when closing
-        setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+        setFormData({ name: '', email: '', password: '', confirmPassword: '', location: '' });
         setError(null);
         setSuccess(false);
         setShowPassword(false);
@@ -154,6 +156,29 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
                   disabled={loading}
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="location" className="text-sm font-medium">
+                Default Location
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="location"
+                  name="location"
+                  type="text"
+                  placeholder="e.g. SW1A 1AA"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  className="pl-10"
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                This will be used as your location when planning meetups with friends in groups (can be changed later).
+              </p>
             </div>
 
             <div className="space-y-2">
