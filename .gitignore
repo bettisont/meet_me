@@ -113,3 +113,7 @@ temp/
 
 # Claude Code
 .claude/
+
+# Database files
+*.db
+*.db-journal

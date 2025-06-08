@@ -5,7 +5,8 @@ import { Input } from '../ui/input';
 import { Select } from '../ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Alert, AlertDescription } from '../ui/alert';
-import { MapPin, X, Plus, Loader2, Star, Navigation } from 'lucide-react';
+import { MapPin, X, Plus, Loader2, Star, Navigation, Users, Lock } from 'lucide-react';
+import SignUpModal from '../SignUpModal';
 
 const VenueFinder = () => {
   const [postcodes, setPostcodes] = useState(['', '']);
@@ -13,6 +14,7 @@ const VenueFinder = () => {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showSignUpModal, setShowSignUpModal] = useState(false);
 
   const venueTypes = [
     { value: 'pub', label: 'Pub' },
@@ -154,6 +156,21 @@ const VenueFinder = () => {
               )}
             </Button>
 
+            {/* Light-touch account creation prompt */}
+            <div className="text-center pt-2">
+              <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                <Lock className="h-3 w-3" />
+                Want to save your locations or plan with friends?{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowSignUpModal(true)}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Create an account
+                </button>
+              </p>
+            </div>
+
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
@@ -226,6 +243,12 @@ const VenueFinder = () => {
           </Card>
         </div>
       )}
+
+      {/* Sign Up Modal */}
+      <SignUpModal 
+        open={showSignUpModal} 
+        onOpenChange={setShowSignUpModal} 
+      />
     </div>
   );
 };
