@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
-const UserContext = createContext();
+export const UserContext = createContext();
 
 export const useUser = () => {
   const context = useContext(UserContext);
@@ -17,31 +17,43 @@ export const UserProvider = ({ children }) => {
   // Initialize user from localStorage on mount
   useEffect(() => {
     const savedUser = localStorage.getItem('meetme_user');
-    if (savedUser) {
+    const savedToken = localStorage.getItem('authToken');
+    if (savedUser && savedToken) {
       try {
         setUser(JSON.parse(savedUser));
       } catch (error) {
         console.error('Error parsing saved user:', error);
         localStorage.removeItem('meetme_user');
+        localStorage.removeItem('authToken');
       }
     }
     setLoading(false);
   }, []);
 
-  const login = (userData) => {
+  const login = (userData, token) => {
     setUser(userData);
     localStorage.setItem('meetme_user', JSON.stringify(userData));
+    if (token) {
+      localStorage.setItem('authToken', token);
+    }
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('meetme_user');
+    localStorage.removeItem('authToken');
+  };
+
+  const updateUser = (updatedData) => {
+    setUser(updatedData);
+    localStorage.setItem('meetme_user', JSON.stringify(updatedData));
   };
 
   const value = {
     user,
     login,
     logout,
+    updateUser,
     loading,
     isLoggedIn: !!user
   };

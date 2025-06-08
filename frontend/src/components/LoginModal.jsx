@@ -54,8 +54,8 @@ const LoginModal = ({ open, onOpenChange, onSwitchToSignUp }) => {
       const result = await response.json();
       console.log('Login successful:', result);
       
-      // Save user to context
-      login(result.user);
+      // Save user and token to context
+      login(result.user, result.token);
       setSuccess(true);
       
       // Reset form

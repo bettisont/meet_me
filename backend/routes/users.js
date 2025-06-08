@@ -113,7 +113,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { email, name } = req.body;
+    const { email, name, location } = req.body;
     
     // Check if user exists
     const existingUser = await getUserById(id);
@@ -136,6 +136,7 @@ router.put('/:id', async (req, res) => {
     const updateData = {};
     if (email !== undefined) updateData.email = email;
     if (name !== undefined) updateData.name = name;
+    if (location !== undefined) updateData.location = location;
     
     const user = await updateUser(id, updateData);
     res.json(user);

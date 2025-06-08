@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, LogOut, Settings } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import {
@@ -9,18 +10,20 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 
-const ProfileDropdown = ({ onProfileClick }) => {
+const ProfileDropdown = () => {
   const { user, logout } = useUser();
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleProfileClick = () => {
     setIsOpen(false);
-    onProfileClick();
+    navigate('/profile');
   };
 
   const handleLogout = () => {
     setIsOpen(false);
     logout();
+    navigate('/');
   };
 
   // Get user initials for avatar
@@ -28,8 +31,16 @@ const ProfileDropdown = ({ onProfileClick }) => {
     if (name) {
       return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     }
-    return email.slice(0, 2).toUpperCase();
+    if (email) {
+      return email.slice(0, 2).toUpperCase();
+    }
+    return 'U';
   };
+
+  // Don't render if no user
+  if (!user) {
+    return null;
+  }
 
   return (
     <DropdownMenu>
@@ -38,15 +49,15 @@ const ProfileDropdown = ({ onProfileClick }) => {
         className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2"
       >
         <span className="text-xs font-medium">
-          {getInitials(user?.name, user?.email)}
+          {getInitials(user.name, user.email)}
         </span>
       </DropdownMenuTrigger>
       
       {isOpen && (
         <DropdownMenuContent className="w-56" align="end">
           <div className="px-2 py-1.5">
-            <p className="text-sm font-medium">{user?.name || 'User'}</p>
-            <p className="text-xs text-muted-foreground">{user?.email}</p>
+            <p className="text-sm font-medium">{user.name || 'User'}</p>
+            <p className="text-xs text-muted-foreground">{user.email}</p>
           </div>
           
           <DropdownMenuSeparator />

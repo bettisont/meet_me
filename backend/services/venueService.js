@@ -12,10 +12,35 @@ const venueTypeMapping = {
   shopping: 'shopping_mall'
 };
 
-const searchVenuesNearLocation = async (lat, lng, venueType, radius = 2000) => {
-  try {
-    // Using Overpass API (OpenStreetMap) for venue search
-    const query = `
+const getSearchQuery = (venueType, radius, lat, lng) => {
+  if (venueType === 'park') {
+    // Comprehensive park search including various leisure areas
+    return `
+      [out:json][timeout:25];
+      (
+        node["amenity"="park"](around:${radius},${lat},${lng});
+        way["amenity"="park"](around:${radius},${lat},${lng});
+        relation["amenity"="park"](around:${radius},${lat},${lng});
+        node["leisure"="park"](around:${radius},${lat},${lng});
+        way["leisure"="park"](around:${radius},${lat},${lng});
+        relation["leisure"="park"](around:${radius},${lat},${lng});
+        node["leisure"="garden"](around:${radius},${lat},${lng});
+        way["leisure"="garden"](around:${radius},${lat},${lng});
+        relation["leisure"="garden"](around:${radius},${lat},${lng});
+        node["leisure"="recreation_ground"](around:${radius},${lat},${lng});
+        way["leisure"="recreation_ground"](around:${radius},${lat},${lng});
+        relation["leisure"="recreation_ground"](around:${radius},${lat},${lng});
+        node["landuse"="recreation_ground"](around:${radius},${lat},${lng});
+        way["landuse"="recreation_ground"](around:${radius},${lat},${lng});
+        relation["landuse"="recreation_ground"](around:${radius},${lat},${lng});
+      );
+      out body;
+      >;
+      out skel qt;
+    `;
+  } else {
+    // Standard search for other venue types
+    return `
       [out:json][timeout:25];
       (
         node["amenity"="${venueTypeMapping[venueType] || venueType}"](around:${radius},${lat},${lng});
@@ -26,6 +51,13 @@ const searchVenuesNearLocation = async (lat, lng, venueType, radius = 2000) => {
       >;
       out skel qt;
     `;
+  }
+};
+
+const searchVenuesNearLocation = async (lat, lng, venueType, radius = 10000) => {
+  try {
+    // Using Overpass API (OpenStreetMap) for venue search
+    const query = getSearchQuery(venueType, radius, lat, lng);
 
     const response = await axios.post('https://overpass-api.de/api/interpreter', query, {
       headers: { 'Content-Type': 'text/plain' }
@@ -45,7 +77,7 @@ const searchVenuesNearLocation = async (lat, lng, venueType, radius = 2000) => {
         website: element.tags.website
       }))
       .filter(venue => venue.lat && venue.lng)
-      .slice(0, 10); // Limit to 10 venues
+      .slice(0, 5); // Limit to 5 venues
 
     return venues;
   } catch (error) {
