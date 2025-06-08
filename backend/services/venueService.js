@@ -77,7 +77,7 @@ const searchVenuesNearLocation = async (lat, lng, venueType, radius = 10000) => 
         website: element.tags.website
       }))
       .filter(venue => venue.lat && venue.lng)
-      .slice(0, 20); // Limit to 20 venues for better coverage
+      .slice(0, 5); // Limit to 5 venues
 
     return venues;
   } catch (error) {
