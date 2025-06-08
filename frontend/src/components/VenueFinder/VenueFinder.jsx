@@ -194,10 +194,10 @@ ${venue.address}${venue.website ? `\n${venue.website}` : ''}`;
 
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
       <div className="text-center space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight">Find a Venue</h1>
-        <p className="text-muted-foreground text-lg">Find the sweet spot between you and them.</p>
+        <h1 className="text-2xl sm:text-4xl font-bold tracking-tight">Find a Venue</h1>
+        <p className="text-muted-foreground text-base sm:text-lg">Find the sweet spot between you and them.</p>
       </div>
 
       <Card>
@@ -213,7 +213,7 @@ ${venue.address}${venue.website ? `\n${venue.website}` : ''}`;
                 <button
                   type="button"
                   onClick={() => switchTab('manual')}
-                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  className={`px-3 sm:px-4 py-2.5 text-sm font-medium border-b-2 transition-colors min-h-[44px] flex items-center ${
                     activeTab === 'manual'
                       ? 'border-primary text-primary'
                       : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
@@ -225,14 +225,15 @@ ${venue.address}${venue.website ? `\n${venue.website}` : ''}`;
                   <button
                     type="button"
                     onClick={() => switchTab('group')}
-                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    className={`px-3 sm:px-4 py-2.5 text-sm font-medium border-b-2 transition-colors min-h-[44px] flex items-center ${
                       activeTab === 'group'
                         ? 'border-primary text-primary'
                         : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
                     }`}
                   >
                     <Users className="h-4 w-4 mr-1 inline" />
-                    Friendship Group
+                    <span className="hidden sm:inline">Friendship Group</span>
+                    <span className="sm:hidden">Group</span>
                   </button>
                 )}
               </div>

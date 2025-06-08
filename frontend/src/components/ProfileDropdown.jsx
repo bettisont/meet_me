@@ -46,9 +46,9 @@ const ProfileDropdown = () => {
     <DropdownMenu>
       <DropdownMenuTrigger
         onClick={() => setIsOpen(!isOpen)}
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2"
+        className="flex h-9 w-9 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 min-w-[36px] min-h-[36px] sm:min-w-[32px] sm:min-h-[32px]"
       >
-        <span className="text-xs font-medium">
+        <span className="text-sm sm:text-xs font-medium">
           {getInitials(user.name, user.email)}
         </span>
       </DropdownMenuTrigger>
@@ -64,13 +64,13 @@ const ProfileDropdown = () => {
           
           <DropdownMenuItem
             onClick={handleProfileClick}
-            className="cursor-pointer hover:bg-accent"
+            className="cursor-pointer hover:bg-accent py-2.5 px-3 min-h-[44px] flex items-center"
           >
             <User className="mr-2 h-4 w-4" />
             Profile
           </DropdownMenuItem>
           
-          <DropdownMenuItem className="cursor-pointer hover:bg-accent">
+          <DropdownMenuItem className="cursor-pointer hover:bg-accent py-2.5 px-3 min-h-[44px] flex items-center">
             <Settings className="mr-2 h-4 w-4" />
             Settings
           </DropdownMenuItem>
@@ -79,7 +79,7 @@ const ProfileDropdown = () => {
           
           <DropdownMenuItem
             onClick={handleLogout}
-            className="cursor-pointer hover:bg-accent text-red-600 focus:text-red-600"
+            className="cursor-pointer hover:bg-accent text-red-600 focus:text-red-600 py-2.5 px-3 min-h-[44px] flex items-center"
           >
             <LogOut className="mr-2 h-4 w-4" />
             Sign out

@@ -15,11 +15,11 @@ function Navigation() {
 
   return (
     <nav className="bg-white shadow-sm border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-14 sm:h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <h1 className="text-xl font-bold">MeetMe</h1>
+              <h1 className="text-lg sm:text-xl font-bold">MeetMe</h1>
             </div>
             <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
               <Link
@@ -51,12 +51,12 @@ function Navigation() {
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="sm:hidden ml-2 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              className="sm:hidden ml-1 inline-flex items-center justify-center p-2.5 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 min-w-[44px] min-h-[44px]"
             >
               {mobileMenuOpen ? (
-                <X className="h-6 w-6" />
+                <X className="h-5 w-5" />
               ) : (
-                <Menu className="h-6 w-6" />
+                <Menu className="h-5 w-5" />
               )}
             </button>
           </div>
@@ -65,12 +65,12 @@ function Navigation() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="sm:hidden">
-          <div className="pt-2 pb-3 space-y-1">
+        <div className="sm:hidden border-t border-gray-200">
+          <div className="pt-2 pb-3 space-y-1 bg-gray-50">
             <Link
               to="/"
               onClick={() => setMobileMenuOpen(false)}
-              className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300"
+              className="block pl-4 pr-4 py-3 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-white hover:border-gray-300 active:bg-gray-100 min-h-[48px] flex items-center"
             >
               Venue Finder
             </Link>
@@ -79,14 +79,14 @@ function Navigation() {
                 <Link
                   to="/friends"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300"
+                  className="block pl-4 pr-4 py-3 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-white hover:border-gray-300 active:bg-gray-100 min-h-[48px] flex items-center"
                 >
                   Friends
                 </Link>
                 <Link
                   to="/groups"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300"
+                  className="block pl-4 pr-4 py-3 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-white hover:border-gray-300 active:bg-gray-100 min-h-[48px] flex items-center"
                 >
                   Groups
                 </Link>
