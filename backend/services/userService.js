@@ -110,6 +110,33 @@ const deleteUser = async (id) => {
   }
 };
 
+const authenticateUser = async (email, password) => {
+  try {
+    // Get user with password for authentication
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new Error('Invalid email or password');
+    }
+
+    // Compare password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    
+    if (!isPasswordValid) {
+      throw new Error('Invalid email or password');
+    }
+
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  } catch (error) {
+    console.error('Error authenticating user:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   createUser,
   getUserById,
@@ -117,4 +144,5 @@ module.exports = {
   getAllUsers,
   updateUser,
   deleteUser,
+  authenticateUser,
 };

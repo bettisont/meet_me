@@ -7,14 +7,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Alert, AlertDescription } from '../ui/alert';
 import { MapPin, X, Plus, Loader2, Star, Navigation, Users, Lock } from 'lucide-react';
 import SignUpModal from '../SignUpModal';
+import LoginModal from '../LoginModal';
+import ProfileDropdown from '../ProfileDropdown';
+import ProfilePage from '../ProfilePage';
+import { useUser } from '../../contexts/UserContext';
 
 const VenueFinder = () => {
+  const { isLoggedIn } = useUser();
   const [postcodes, setPostcodes] = useState(['', '']);
   const [venueType, setVenueType] = useState('pub');
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   const venueTypes = [
     { value: 'pub', label: 'Pub' },
@@ -69,11 +76,23 @@ const VenueFinder = () => {
     }
   };
 
+  // Show profile page if requested
+  if (showProfile) {
+    return <ProfilePage onBack={() => setShowProfile(false)} />;
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
-      <div className="text-center space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight">Find Your Perfect Meeting Spot</h1>
-        <p className="text-muted-foreground text-lg">Enter postcodes and we'll find the best venues in the middle</p>
+      <div className="text-center space-y-2 relative">
+        {/* Profile dropdown in top right when logged in */}
+        {isLoggedIn && (
+          <div className="absolute top-0 right-0">
+            <ProfileDropdown onProfileClick={() => setShowProfile(true)} />
+          </div>
+        )}
+        
+        <h1 className="text-4xl font-bold tracking-tight">MeetMe</h1>
+        <p className="text-muted-foreground text-lg">Find the sweet spot between you and them.</p>
       </div>
 
       <Card>
@@ -156,20 +175,32 @@ const VenueFinder = () => {
               )}
             </Button>
 
-            {/* Light-touch account creation prompt */}
-            <div className="text-center pt-2">
-              <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                <Lock className="h-3 w-3" />
-                Want to save your locations or plan with friends?{' '}
-                <button
-                  type="button"
-                  onClick={() => setShowSignUpModal(true)}
-                  className="text-primary hover:underline font-medium"
-                >
-                  Create an account
-                </button>
-              </p>
-            </div>
+            {/* Light-touch account prompt - only show when not logged in */}
+            {!isLoggedIn && (
+              <div className="text-center pt-2">
+                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1 flex-wrap">
+                  <Lock className="h-3 w-3" />
+                  Want to save your locations or plan with friends?{' '}
+                  <span className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginModal(true)}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Sign in
+                    </button>
+                    <span>or</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowSignUpModal(true)}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      create account
+                    </button>
+                  </span>
+                </p>
+              </div>
+            )}
 
             {error && (
               <Alert variant="destructive">
@@ -244,10 +275,24 @@ const VenueFinder = () => {
         </div>
       )}
 
+      {/* Login Modal */}
+      <LoginModal 
+        open={showLoginModal} 
+        onOpenChange={setShowLoginModal}
+        onSwitchToSignUp={() => {
+          setShowLoginModal(false);
+          setShowSignUpModal(true);
+        }}
+      />
+
       {/* Sign Up Modal */}
       <SignUpModal 
         open={showSignUpModal} 
-        onOpenChange={setShowSignUpModal} 
+        onOpenChange={setShowSignUpModal}
+        onSwitchToLogin={() => {
+          setShowSignUpModal(false);
+          setShowLoginModal(true);
+        }}
       />
     </div>
   );

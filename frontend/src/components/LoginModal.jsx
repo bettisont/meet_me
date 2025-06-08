@@ -10,22 +10,19 @@ import {
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Alert, AlertDescription } from './ui/alert';
-import { Loader2, Mail, User, Lock, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 
-const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
+const LoginModal = ({ open, onOpenChange, onSwitchToSignUp }) => {
   const { login } = useUser();
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
-    password: '',
-    confirmPassword: ''
+    password: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -40,46 +37,29 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
     setError(null);
     setLoading(true);
 
-    // Validate passwords
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const response = await fetch('http://localhost:5001/api/users', {
+      const response = await fetch('http://localhost:5001/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create account');
+        throw new Error(errorData.error || 'Failed to login');
       }
 
-      const user = await response.json();
-      console.log('User created:', user);
+      const result = await response.json();
+      console.log('Login successful:', result);
       
-      // Auto-login the user after successful signup
-      login(user);
+      // Save user to context
+      login(result.user);
       setSuccess(true);
       
       // Reset form
-      setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+      setFormData({ email: '', password: '' });
       
       // Close modal after a brief delay
       setTimeout(() => {
@@ -99,11 +79,10 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
       onOpenChange(newOpen);
       if (!newOpen) {
         // Reset form when closing
-        setFormData({ name: '', email: '', password: '', confirmPassword: '' });
+        setFormData({ email: '', password: '' });
         setError(null);
         setSuccess(false);
         setShowPassword(false);
-        setShowConfirmPassword(false);
       }
     }
   };
@@ -112,50 +91,31 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create Your Account</DialogTitle>
+          <DialogTitle>Welcome Back</DialogTitle>
           <DialogDescription>
-            Save your favorite locations and plan meetups with friends more easily.
+            Sign in to access your saved locations and plan with friends.
           </DialogDescription>
         </DialogHeader>
 
         {success ? (
           <div className="text-center py-6">
             <div className="text-green-600 text-lg font-semibold mb-2">
-              Account created successfully! 🎉
+              Welcome back! 🎉
             </div>
             <p className="text-muted-foreground">
-              Welcome to MeetMe. You can now save locations and plan with friends.
+              You're now signed in to MeetMe.
             </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium">
-                Name
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  placeholder="Your name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="pl-10"
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
+              <label htmlFor="login-email" className="text-sm font-medium">
                 Email
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="email"
+                  id="login-email"
                   name="email"
                   type="email"
                   placeholder="your@email.com"
@@ -169,13 +129,13 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
+              <label htmlFor="login-password" className="text-sm font-medium">
                 Password
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="password"
+                  id="login-password"
                   name="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
@@ -184,7 +144,6 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
                   className="pl-10 pr-10"
                   required
                   disabled={loading}
-                  minLength={6}
                 />
                 <button
                   type="button"
@@ -193,41 +152,6 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
                   disabled={loading}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Must be at least 6 characters long
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="text-sm font-medium">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm your password"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className="pl-10 pr-10"
-                  required
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
-                  disabled={loading}
-                >
-                  {showConfirmPassword ? (
                     <EyeOff className="h-4 w-4" />
                   ) : (
                     <Eye className="h-4 w-4" />
@@ -251,29 +175,27 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
+                    Signing in...
                   </>
                 ) : (
-                  'Create Account'
+                  'Sign In'
                 )}
               </Button>
               
-              {onSwitchToLogin && (
-                <div className="text-center text-sm text-muted-foreground">
-                  Already have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onOpenChange(false);
-                      onSwitchToLogin();
-                    }}
-                    className="text-primary hover:underline font-medium"
-                    disabled={loading}
-                  >
-                    Sign in here
-                  </button>
-                </div>
-              )}
+              <div className="text-center text-sm text-muted-foreground">
+                Don't have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenChange(false);
+                    onSwitchToSignUp();
+                  }}
+                  className="text-primary hover:underline font-medium"
+                  disabled={loading}
+                >
+                  Create one here
+                </button>
+              </div>
             </DialogFooter>
           </form>
         )}
@@ -282,4 +204,4 @@ const SignUpModal = ({ open, onOpenChange, onSwitchToLogin }) => {
   );
 };
 
-export default SignUpModal;
+export default LoginModal;

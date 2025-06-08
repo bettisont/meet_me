@@ -1,11 +1,14 @@
 import VenueFinder from './components/VenueFinder/VenueFinder'
+import { UserProvider } from './contexts/UserContext'
 import './App.css'
 
 function App() {
   return (
-    <div className="app">
-      <VenueFinder />
-    </div>
+    <UserProvider>
+      <div className="app">
+        <VenueFinder />
+      </div>
+    </UserProvider>
   )
 }
 
