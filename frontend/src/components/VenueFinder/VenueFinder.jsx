@@ -457,15 +457,15 @@ ${venue.address}${venue.website ? `\n${venue.website}` : ''}`;
                           <span className="text-muted-foreground truncate">{venue.phone}</span>
                         )}
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         {venue.website && (
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleVisitWebsite(venue.website)}
-                            className="text-xs w-full"
+                            className="text-xs h-8 px-3 flex-1 min-w-0"
                           >
-                            <ExternalLink className="h-3 w-3 mr-1" />
+                            <ExternalLink className="h-3 w-3 mr-1.5" />
                             Website
                           </Button>
                         )}
@@ -473,18 +473,18 @@ ${venue.address}${venue.website ? `\n${venue.website}` : ''}`;
                           variant="outline"
                           size="sm"
                           onClick={() => handleViewOnMaps(venue)}
-                          className="text-xs w-full"
+                          className="text-xs h-8 px-3 flex-1 min-w-0"
                         >
-                          <MapPin className="h-3 w-3 mr-1" />
+                          <MapPin className="h-3 w-3 mr-1.5" />
                           Maps
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleShareVenue(venue)}
-                          className={`text-xs w-full ${!venue.website ? 'col-span-2' : ''}`}
+                          className="text-xs h-8 px-3 flex-1 min-w-0"
                         >
-                          <Share2 className="h-3 w-3 mr-1" />
+                          <Share2 className="h-3 w-3 mr-1.5" />
                           {shareSuccess === venue.id ? 'Copied!' : 'Share'}
                         </Button>
                       </div>
@@ -508,9 +508,9 @@ ${venue.address}${venue.website ? `\n${venue.website}` : ''}`;
                             variant="outline"
                             size="sm"
                             onClick={() => handleVisitWebsite(venue.website)}
-                            className="text-xs"
+                            className="text-xs h-8 px-3"
                           >
-                            <ExternalLink className="h-3 w-3 mr-1" />
+                            <ExternalLink className="h-3 w-3 mr-1.5" />
                             Website
                           </Button>
                         )}
@@ -518,18 +518,18 @@ ${venue.address}${venue.website ? `\n${venue.website}` : ''}`;
                           variant="outline"
                           size="sm"
                           onClick={() => handleViewOnMaps(venue)}
-                          className="text-xs"
+                          className="text-xs h-8 px-3"
                         >
-                          <MapPin className="h-3 w-3 mr-1" />
+                          <MapPin className="h-3 w-3 mr-1.5" />
                           Maps
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleShareVenue(venue)}
-                          className="text-xs"
+                          className="text-xs h-8 px-3"
                         >
-                          <Share2 className="h-3 w-3 mr-1" />
+                          <Share2 className="h-3 w-3 mr-1.5" />
                           {shareSuccess === venue.id ? 'Copied!' : 'Share'}
                         </Button>
                       </div>
