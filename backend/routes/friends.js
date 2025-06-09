@@ -118,6 +118,50 @@ router.put('/request/:id', authenticate, async (req, res) => {
   }
 });
 
+// Get all friends (accepted friendships) - both routes for compatibility
+router.get('/', authenticate, async (req, res) => {
+  const userId = req.userId;
+
+  try {
+    const friendships = await prisma.friendship.findMany({
+      where: {
+        AND: [
+          { status: 'accepted' },
+          {
+            OR: [
+              { senderId: userId },
+              { receiverId: userId }
+            ]
+          }
+        ]
+      },
+      include: {
+        sender: {
+          select: { id: true, email: true, name: true, location: true }
+        },
+        receiver: {
+          select: { id: true, email: true, name: true, location: true }
+        }
+      }
+    });
+
+    // Format the response to return friend data
+    const friends = friendships.map(friendship => {
+      const friend = friendship.senderId === userId ? friendship.receiver : friendship.sender;
+      return {
+        id: friendship.id,
+        friend,
+        createdAt: friendship.createdAt
+      };
+    });
+
+    res.json(friends);
+  } catch (error) {
+    console.error('Error fetching friends:', error);
+    res.status(500).json({ error: 'Failed to fetch friends' });
+  }
+});
+
 // Get all friends (accepted friendships)
 router.get('/list', authenticate, async (req, res) => {
   const userId = req.userId;
